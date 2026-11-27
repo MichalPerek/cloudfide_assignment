@@ -48,4 +48,11 @@ export class TodoRepository implements TodoStore {
     const { count } = await this.database.todo.deleteMany({ where: { id } });
     return count > 0;
   }
+
+  async countByPriority(): Promise<Record<'low' | 'medium' | 'high', number>> {
+    const rows = await this.database.todo.groupBy({ by: ['priority'], _count: { _all: true } });
+    const counts = { low: 0, medium: 0, high: 0 };
+    for (const row of rows) counts[row.priority] = row._count._all;
+    return counts;
+  }
 }

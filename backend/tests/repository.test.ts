@@ -27,12 +27,12 @@ it('gets a task by ID and handles missing tasks', async () => {
 
 it.each(['2026-10-15', null])('creates tasks with calendar dates and timestamps (%s)', async (due_date) => {
   const { database, repository } = setup();
-  const date = due_date ? new Date(`${due_date}T00:00:00.000Z`) : null;
-  const create = vi.spyOn(database.todo, 'create').mockResolvedValue({ ...record, due_date: date });
+  const dueDate = due_date ? new Date(`${due_date}T00:00:00.000Z`) : null;
+  const create = vi.spyOn(database.todo, 'create').mockResolvedValue({ ...record, due_date: dueDate });
   expect(await repository.create({ title: 'Task', description: '', priority: 'medium', completed: false, due_date }))
     .toEqual({ ...todo, due_date });
   const data = create.mock.calls[0][0].data;
-  expect(data).toMatchObject({ title: 'Task', due_date: date });
+  expect(data).toMatchObject({ title: 'Task', due_date: dueDate });
   expect(data.created_at).toBeInstanceOf(Date);
   expect(data.updated_at).toEqual(data.created_at);
 });
@@ -48,10 +48,10 @@ it('updates fields without clearing an omitted due date', async () => {
 
 it.each(['2026-10-15', null])('updates or clears a due date (%s)', async (due_date) => {
   const { database, repository } = setup();
-  const date = due_date ? new Date(`${due_date}T00:00:00.000Z`) : null;
-  const update = vi.spyOn(database.todo, 'updateManyAndReturn').mockResolvedValue([{ ...record, due_date: date }]);
+  const dueDate = due_date ? new Date(`${due_date}T00:00:00.000Z`) : null;
+  const update = vi.spyOn(database.todo, 'updateManyAndReturn').mockResolvedValue([{ ...record, due_date: dueDate }]);
   expect((await repository.update(1, { due_date }))?.due_date).toEqual(due_date);
-  expect(update.mock.calls[0][0].data.due_date).toEqual(date);
+  expect(update.mock.calls[0][0].data.due_date).toEqual(dueDate);
 });
 
 it('returns null when updating a missing task', async () => {

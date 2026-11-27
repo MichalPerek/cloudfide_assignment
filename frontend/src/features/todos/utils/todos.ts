@@ -62,6 +62,16 @@ export function isOverdue(todo: Todo): boolean {
   return !todo.completed && !!todo.due_date && todo.due_date < localDate
 }
 
+const sortLabels: Record<Sort, string> = {
+  newest: 'Newest',
+  priority: 'Priority',
+  due: 'Due date',
+}
+
+export function sortLabel(sort: Sort): string {
+  return sortLabels[sort]
+}
+
 export function formatDate(date: string): string {
   return new Intl.DateTimeFormat('en-GB', {
     day: 'numeric',

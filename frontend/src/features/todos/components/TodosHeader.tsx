@@ -3,9 +3,11 @@ import { Button, Heading, Text } from '../../../design-system'
 
 export function TodosHeader({
   disabled,
+  highPriorityCount,
   onCreate,
 }: {
   disabled: boolean
+  highPriorityCount?: number
   onCreate: () => void
 }) {
   return (
@@ -13,6 +15,9 @@ export function TodosHeader({
       <div className="stack compact">
         <Heading id="page-title">Tasks</Heading>
         <Text muted>Create, organize, and complete tasks.</Text>
+        {!!highPriorityCount && (
+          <Text muted>{highPriorityCount} high priority</Text>
+        )}
       </div>
       <Button disabled={disabled} onClick={onCreate}>
         <Plus size={18} aria-hidden="true" />
