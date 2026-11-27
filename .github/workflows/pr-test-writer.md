@@ -78,6 +78,23 @@ jobs:
             --pr "${{ github.event.pull_request.number }}" \
             --repo "${{ github.repository }}"
 
+  validate-test-conventions:
+    needs: [agent, safe_outputs]
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Fetch base branch for diffing
+        run: git fetch origin "${{ github.event.pull_request.base.ref }}"
+      - name: Validate changed component test files follow convention
+        env:
+          GITHUB_BASE_REF: ${{ github.event.pull_request.base.ref }}
+        run: bash .github/aw/scripts/validate-test-conventions.sh
+
 engine: claude
 ---
 

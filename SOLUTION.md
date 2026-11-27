@@ -103,7 +103,8 @@ One skill per category instead of one generic "write a test" skill, because each
 - Output is ACCEPT or REJECT with specific reasons tied to its rubric.
 - No retry loop: gh-aw runs one engine invocation per job, no matrix/strategy loops. One attempt per file: generate, validate, report plainly if rejected.
 - Every accepted test also has to pass `typecheck` (and `format:check` for frontend files) before the real test run counts it. Cheap and already wired in both packages, catches type errors and formatting drift without relying on the validator's or the agent's own judgment.
-- Only after typecheck/format:check pass does the real test suite run (`npm test`). That real run is the only thing allowed to say pass or fail on behavior.
+- A changed `*.test.tsx` file also has to pass `.github/aw/scripts/validate-test-conventions.sh`, which greps it for the convention violations `ui-component-tests/SKILL.md` bans: `fireEvent` instead of `userEvent`, test-id queries instead of role/text queries, snapshot testing. A deterministic check, not something left to the validator's judgment.
+- Only after typecheck/format:check and the convention check pass does the real test suite run (`npm test`). That real run is the only thing allowed to say pass or fail on behavior.
 
 ### 7-8. Reporting and notifying
 
@@ -162,4 +163,4 @@ Separately: fed the validator a deliberately bad test by hand (tautological asse
 
 - No retry loop: gh-aw limitation, single engine invocation per job. Would need a real multi-job retry across separate workflow invocations.
 - No flakiness check: a test that passes once isn't necessarily reliable. Should run new tests a few times with randomized order before trusting them enough to push.
-- Category and type-correctness are enforced; repo-specific test conventions beyond that (e.g. userEvent over fireEvent) still rely on the validator's judgment, not a lint rule.
+- Category, type-correctness, and the easy-to-grep conventions (userEvent over fireEvent, no test-ids, no snapshots) are enforced in code. Deeper per-category conventions (e.g. the repository-tests I/O-mocking pattern) still rely on the validator's judgment, since they're not reducible to a regex.
