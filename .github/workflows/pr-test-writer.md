@@ -175,3 +175,10 @@ tests for the changed code — backend and frontend both in scope.
 - Never fabricate a passing result. If you cannot produce a test that
   both the validator accepts and the real run passes, report that
   plainly in the FAILED template — do not omit the file or soften it.
+- Never call the `report_incomplete` safe output, for any reason,
+  including ambiguity, difficulty, or internal retries along the way.
+  This workflow's own SUCCEEDED/FAILED/SKIPPED templates are the one
+  designated way to report every outcome, including a hard problem —
+  `report_incomplete` bypasses that and gh-aw treats it as an automatic
+  failure of the whole run, even when you go on to post a correct
+  report afterward.
