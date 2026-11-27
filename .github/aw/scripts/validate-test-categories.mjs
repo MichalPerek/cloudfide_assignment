@@ -139,11 +139,18 @@ function scrapeTableCategories(commentBody) {
 }
 
 function fetchPrCommentViaGh(pr, repo) {
+  // Select on gh-aw-workflow-call-id, not gh-aw-test-writer: the latter is a
+  // marker the reporting SKILL is supposed to emit (content-level, can be
+  // missing if the agent didn't follow its template), while the former is
+  // injected by gh-aw's own add-comment safe-output itself (framework-level,
+  // always present on the real report comment). Selecting on content that
+  // can be absent means a comment that's missing its own status marker also
+  // can't be found at all, compounding one failure into two.
   const args = [
     "api",
     `repos/${repo}/issues/${pr}/comments`,
     "--jq",
-    "[.[] | select(.body | contains(\"gh-aw-test-writer\"))] | sort_by(.created_at) | last | .body // \"\"",
+    "[.[] | select(.body | contains(\"gh-aw-workflow-call-id\"))] | sort_by(.created_at) | last | .body // \"\"",
   ];
   const out = execFileSync("gh", args, { encoding: "utf8" });
   return out;
