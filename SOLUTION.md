@@ -185,4 +185,3 @@ Separately: fed the validator a deliberately bad test by hand (tautological asse
 
 - No retry loop: gh-aw limitation, single engine invocation per job. Would need a real multi-job retry across separate workflow invocations.
 - No flakiness check: a test that passes once isn't necessarily reliable. Should run new tests a few times with randomized order before trusting them enough to push.
-- Category, type-correctness, and the easy-to-grep conventions (userEvent over fireEvent, no test-ids, no snapshots) are enforced in code. Deeper per-category conventions (e.g. the repository-tests I/O-mocking pattern) still rely on the validator's judgment, since they're not reducible to a regex.
