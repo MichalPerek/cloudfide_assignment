@@ -5,6 +5,8 @@ description: Formats the final PR comment summarizing what the test-writing agen
 
 # Test Verification and Reporting
 
+**Every comment this skill posts MUST start with both HTML markers below, with no exceptions, including the "Other backend/frontend changes" independent-files case and the SKIPPED case.** A downstream job parses the second marker for deterministic category validation; without it, that job falls back to heuristically scraping the rendered table, which is less reliable and has already caused a real failure once. Write both markers literally as the first two lines of the comment, before the heading, every time, even for a one-line PR.
+
 The real test run (`npm test` / `npm run test:coverage` in the relevant package) is the only thing allowed to determine pass/fail. Never report success based on the generator's or validator's opinion alone.
 
 ## Structure: one TLDR, then one section per change-group
