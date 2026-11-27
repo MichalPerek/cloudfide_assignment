@@ -1,6 +1,6 @@
 # Solution
 
-Repo: [MichalPerek/cloudfide_assignment](https://github.com/MichalPerek/cloudfide_assignment). Base: [cf-recruitment/taskly-app-node](https://github.com/cf-recruitment/taskly-app-node).
+Repo: [MichalPerek/cloudfide_assignment](https://github.com/MichalPerek/cloudfide_assignment). Base: [cf-recruitment/taskly-app-node](https://github.com/cf-recruitment/taskly-app-node). Assignment for the AI Engineer — Agentic Workflows role.
 
 ## What this is
 
