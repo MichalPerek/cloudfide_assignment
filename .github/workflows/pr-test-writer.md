@@ -47,6 +47,27 @@ safe-outputs:
   push-to-pull-request-branch:
     max: 1
 
+jobs:
+  validate-test-categories:
+    needs: [agent, safe_outputs]
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+      - name: Setup Node
+        uses: actions/setup-node@v7.1.0
+        with:
+          node-version: "22"
+      - name: Validate test categories against canonical manifest
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          node .github/aw/scripts/validate-test-categories.mjs \
+            --pr "${{ github.event.pull_request.number }}" \
+            --repo "${{ github.repository }}"
+
 engine: claude
 ---
 

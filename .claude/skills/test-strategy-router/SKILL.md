@@ -24,6 +24,8 @@ For every file, decide two things: (1) which category it belongs to, (2) whether
 
 ## Categories
 
+The categories below are a human-readable mirror of `.github/aw/test-categories.json`, which is the authoritative, machine-checked list. If this list and that file ever disagree, `.github/aw/test-categories.json` wins — use its `name` values verbatim when classifying files and when handing category names to the reporting skill, and flag the mismatch rather than silently picking one.
+
 - **api-contract** — Express routers/controllers under `backend/src/**/router.ts` or similar HTTP-boundary files. → `api-contract-tests` skill.
 - **repository-data-layer** — Prisma-backed data access under `backend/src/**/repository.ts`. → `repository-tests` skill.
 - **pure-function** — Validators, mappers, and other side-effect-free functions (`backend/src/**/validators.ts`, `mappers.ts`, `frontend/src/**/utils/*.ts`). → `pure-function-tests` skill.
