@@ -13,6 +13,7 @@ Render the group structure `test-strategy-router` produced — don't flatten it 
 
 ```
 <!-- gh-aw-test-writer: <TOP-LEVEL VALUE — see rule below> -->
+<!-- gh-aw-test-categories: <JSON array of category names used, see below> -->
 **Test Coverage Agent — summary**
 
 TLDR: <one or two sentences covering every group at a glance>
@@ -46,6 +47,16 @@ For "independent / ungrouped" files, use two trailing sections titled "Other bac
 <!-- gh-aw-test-writer: SUCCEEDED -->
 <!-- gh-aw-test-writer: SKIPPED -->
 ```
+
+## A second machine-readable marker for category validation
+
+Immediately below the `gh-aw-test-writer` marker, emit one more HTML comment containing a JSON array of every category name actually used across all groups (the exact `name` values from `.github/aw/test-categories.json`, deduplicated, excluding `not-code`):
+
+```
+<!-- gh-aw-test-categories: ["api-contract","ui-component"] -->
+```
+
+This exists solely so a downstream script can deterministically validate category names without parsing the rendered tables — never invent a name here that isn't in that file.
 
 ## Constraints
 
