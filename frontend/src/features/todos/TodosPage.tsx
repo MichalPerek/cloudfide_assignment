@@ -7,6 +7,7 @@ import { TodoEditor } from './components/TodoEditor'
 import { TodoFilters } from './components/TodoFilters'
 import { TodoList } from './components/TodoList'
 import { TodosHeader } from './components/TodosHeader'
+import { useClearCompletedMutation } from './hooks/useClearCompletedMutation'
 import { useTodoFilters } from './hooks/useTodoFilters'
 import { useTodosBusy } from './hooks/useTodosBusy'
 import { useTodosQuery } from './hooks/useTodosQuery'
@@ -18,6 +19,7 @@ export function TodosPage() {
   const todos = todosQuery.data ?? []
   const filters = useTodoFilters(todos)
   const toggleTodo = useUpdateTodoMutation()
+  const clearCompleted = useClearCompletedMutation()
   const busy = useTodosBusy()
   const { message, notify } = useNotice()
   const [editor, setEditor] = useState<Todo | 'new' | null>(null)
@@ -44,13 +46,24 @@ export function TodosPage() {
     toggleTodo.reset()
     await todosQuery.refetch()
   }
+  async function clearCompletedTodos() {
+    if (busy) return
+    try {
+      const { cleared } = await clearCompleted.mutateAsync()
+      notify(cleared === 1 ? '1 task cleared.' : `${cleared} tasks cleared.`)
+    } catch {
+      // Display the mutation error in the page alert.
+    }
+  }
 
   return (
     <>
       <main id="main" className="page-layout">
         <TodosHeader
           disabled={todosQuery.isPending || busy}
+          hasCompleted={todos.some((todo) => todo.completed)}
           onCreate={() => setEditor('new')}
+          onClearCompleted={() => void clearCompletedTodos()}
         />
         <TodoFilters
           filter={filters.filter}

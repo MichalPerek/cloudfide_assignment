@@ -8,8 +8,14 @@ vi.mock('../../../design-system', () => import('../../../design-system/mocks'))
 it('invokes creation when enabled and blocks it when disabled', async () => {
   const user = userEvent.setup()
   const onCreate = vi.fn()
+  const onClearCompleted = vi.fn()
   const { rerender } = render(
-    <TodosHeader disabled={false} onCreate={onCreate} />,
+    <TodosHeader
+      disabled={false}
+      hasCompleted={false}
+      onCreate={onCreate}
+      onClearCompleted={onClearCompleted}
+    />,
   )
   expect(screen.getByRole('heading', { name: 'Tasks' })).toBeVisible()
   expect(
@@ -18,7 +24,14 @@ it('invokes creation when enabled and blocks it when disabled', async () => {
   const button = screen.getByRole('button', { name: 'New task' })
   await user.click(button)
   expect(onCreate).toHaveBeenCalledTimes(1)
-  rerender(<TodosHeader disabled onCreate={onCreate} />)
+  rerender(
+    <TodosHeader
+      disabled
+      hasCompleted={false}
+      onCreate={onCreate}
+      onClearCompleted={onClearCompleted}
+    />,
+  )
   expect(button).toBeDisabled()
   await user.click(button)
   expect(onCreate).toHaveBeenCalledTimes(1)
