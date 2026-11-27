@@ -62,6 +62,7 @@ jobs:
     needs: [agent, safe_outputs]
     runs-on: ubuntu-latest
     permissions:
+      contents: read
       pull-requests: read
     steps:
       - name: Checkout
@@ -82,6 +83,7 @@ jobs:
     needs: [agent, safe_outputs]
     runs-on: ubuntu-latest
     permissions:
+      contents: read
       pull-requests: read
     steps:
       - name: Checkout
