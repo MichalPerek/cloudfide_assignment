@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { completionRate, selectTodos } from './todos'
+import { completionRate, countOverdue, selectTodos } from './todos'
 import type { Todo } from '../types'
 
 const base: Todo = {
@@ -68,5 +68,30 @@ describe('completionRate', () => {
     },
   ])('returns $expected for $label', ({ todos, expected }) => {
     expect(completionRate(todos)).toBe(expected)
+  })
+})
+
+describe('countOverdue', () => {
+  it('returns 0 for an empty list', () => {
+    expect(countOverdue([])).toBe(0)
+  })
+
+  it('counts only incomplete todos with a past due date', () => {
+    const overdue: Todo = { ...base, id: 2, due_date: '2000-01-01' }
+    const todos = [
+      overdue,
+      { ...base, id: 3, due_date: '2099-12-31' },
+      { ...base, id: 4, due_date: null },
+      { ...base, id: 5, due_date: '2000-01-02', completed: true },
+    ]
+    expect(countOverdue(todos)).toBe(1)
+  })
+
+  it('counts multiple overdue todos', () => {
+    const todos = [
+      { ...base, id: 2, due_date: '2000-01-01' },
+      { ...base, id: 3, due_date: '2000-01-02' },
+    ]
+    expect(countOverdue(todos)).toBe(2)
   })
 })
