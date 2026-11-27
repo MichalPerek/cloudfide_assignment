@@ -32,3 +32,18 @@ it.each([{ title: '  ' }, { title: 'x'.repeat(121) }, { title: 'Task', priority:
     expect(repository.create).not.toHaveBeenCalled();
   },
 );
+it('clears completed tasks and reports how many were removed', async () => {
+  const { app, repository } = setup();
+  repository.clearCompleted.mockResolvedValue(3);
+  const response = await request(app).delete('/api/todos/completed');
+  expect(response.status).toBe(200);
+  expect(response.body).toEqual({ cleared: 3 });
+  expect(repository.clearCompleted).toHaveBeenCalledOnce();
+});
+it('reports zero cleared when there are no completed tasks', async () => {
+  const { app, repository } = setup();
+  repository.clearCompleted.mockResolvedValue(0);
+  const response = await request(app).delete('/api/todos/completed');
+  expect(response.status).toBe(200);
+  expect(response.body).toEqual({ cleared: 0 });
+});
