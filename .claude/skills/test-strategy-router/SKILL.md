@@ -32,12 +32,12 @@ The categories below are a human-readable mirror of `.github/aw/test-categories.
 - **react-hook** — Custom hooks under `frontend/src/**/hooks/*.ts` or `use*.ts` files anywhere. → `react-hook-tests` skill.
 - **ui-component** — React components (`.tsx`, excluding `frontend/src/design-system/**`, which is a separate, already-stable library). → `ui-component-tests` skill.
 - **infra-bootstrap** — App wiring, process lifecycle, shared clients, configuration: `backend/src/factory.ts`, `backend/src/main.ts`, `backend/src/core/{config,database,lifespan}.ts`, `frontend/src/lib/http.ts`, `frontend/src/lib/queryClient.ts`. → `infra-smoke-tests` skill. **Exception**: `factory.ts` specifically wires the whole Express app and is realistically testable the same way `router.ts` is (supertest against `createApp()` with a stubbed database) — treat it as `api-contract`-adjacent, not skip-by-default, unless the change is trivial.
-- **not-code** — types-only files (`types.ts`), generated code (`src/generated/**`), Storybook stories, design-system internals, config/build files. Never generate tests for these.
+- **trivial** — types-only files (`types.ts`), generated code (`src/generated/**`), Storybook stories, design-system internals, config/build files. Never generate tests for these.
 
 ## Skip criteria (emit `noop`, do not call a generator)
 
 Skip a file, with a one-line reason, when:
-- It's `not-code`.
+- It's `trivial`.
 - It already has adequate test coverage for the actual lines changed (check the existing `*.test.ts(x)` sibling, don't assume absence means no test).
 - The change is a pure rename/formatting/comment change with no behavior difference.
 - It's a hooks/components file inside `frontend/src/design-system/**` — that library has its own stable test/story surface and is out of scope for this agent.
