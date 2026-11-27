@@ -10,6 +10,9 @@ description: |
 on:
   pull_request:
     types: [opened, synchronize]
+    paths:
+      - "backend/**"
+      - "frontend/**"
 
 permissions:
   contents: read
