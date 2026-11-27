@@ -58,11 +58,13 @@ tests for the changed code — backend and frontend both in scope.
 
 ## Process (follow in order, single pass, no retries)
 
-1. Load the `test-strategy-router` skill. Classify every file changed in
-   this PR and decide, per file, whether a test is warranted. If nothing
-   is warranted, call the `noop` safe output with the reasons and stop —
-   use the `test-verification-and-reporting` skill's SKIPPED template as
-   the PR comment.
+1. Load the `test-strategy-router` skill. Group every file changed in
+   this PR into logical change-groups (fullstack feature, backend-only,
+   frontend-only, or independent), then classify each file within its
+   group and decide whether a test is warranted. If nothing in the whole
+   PR is warranted, call the `noop` safe output with the reasons and
+   stop — use the `test-verification-and-reporting` skill's SKIPPED
+   template as the PR comment.
 2. For each file that needs a test, load the matching category skill
    (`api-contract-tests`, `repository-tests`, `pure-function-tests`,
    `react-hook-tests`, `ui-component-tests`, or `infra-smoke-tests`) and

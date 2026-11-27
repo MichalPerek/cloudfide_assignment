@@ -1,51 +1,55 @@
 ---
 name: test-verification-and-reporting
-description: Formats the final PR comment summarizing what the test-writing agent did, using exactly one of three fixed templates (SUCCEEDED, FAILED, SKIPPED). Use once, at the end of a run, after the real test suite has actually executed.
+description: Formats the final PR comment summarizing what the test-writing agent did, grouped by the router's change-groups, with a top-level HTML marker that is always exactly one of three fixed values (SUCCEEDED, FAILED, SKIPPED). Use once, at the end of a run, after the real test suite has actually executed.
 ---
 
 # Test Verification and Reporting
 
 The real test run (`npm test` / `npm run test:coverage` in the relevant package) is the only thing allowed to determine pass/fail. Never report success based on the generator's or validator's opinion alone.
 
-## The three templates — use exactly one, verbatim structure
+## Structure: one TLDR, then one section per change-group
 
-**SUCCEEDED** — the real test run passed for every file touched this run.
+Render the group structure `test-strategy-router` produced — don't flatten it back into one table. Each group becomes its own section with its own status badge; mixed outcomes across groups are shown as mixed, not papered over.
 
 ```
-<!-- gh-aw-test-writer: SUCCEEDED -->
-**Test Coverage Agent — tests added/updated and passing**
+<!-- gh-aw-test-writer: <TOP-LEVEL VALUE — see rule below> -->
+**Test Coverage Agent — summary**
 
-| File | Category | Test file | Result |
+TLDR: <one or two sentences covering every group at a glance>
+
+### <status emoji> <group name> (<change-type tag(s)>)
+
+<one-line group TLDR>
+
+| File | Role | Test file | Result |
 |---|---|---|---|
-| <source file> | <category> | <test file> | pass |
+| <source file> | <category or role within the group> | <test file, or "—" if skipped> | pass / fail / skipped — <reason if skipped> |
 
-Validator feedback: <one line per file, or "no issues on first pass">
+Validator feedback: <one line per generated file, or "no issues on first pass">
+
+### <status emoji> <next group name> (<change-type tag(s)>)
+...
 ```
 
-**FAILED** — at least one attempted file's test did not pass after the single generate-then-validate pass (no retry loop — see constraints).
+Status emoji per group: ✅ every file in the group that needed a test got one and it passed; ❌ at least one file in the group was attempted and failed validation or the real run; ⏭ nothing in the group needed a test (all skipped, with reasons).
+
+For "independent / ungrouped" files, use two trailing sections titled "Other backend changes" and "Other frontend changes" (omit either if empty) instead of a feature name, same table format.
+
+## The top-level HTML marker — still exactly one of three values, now derived from the worst group outcome
+
+- **FAILED** — any group contains a ❌.
+- **SUCCEEDED** — no ❌, and at least one group has a ✅ (something was actually attempted and passed).
+- **SKIPPED** — every group is ⏭ (nothing in the whole PR warranted a test).
 
 ```
 <!-- gh-aw-test-writer: FAILED -->
-**Test Coverage Agent — could not produce a passing test**
-
-| File | Category | Issue |
-|---|---|---|
-| <source file> | <category> | <validator rejection reason, or test failure output, whichever applies> |
-
-No changes were committed or suggested for these files.
-```
-
-**SKIPPED** — the router determined no file in this PR warranted a new/updated test.
-
-```
+<!-- gh-aw-test-writer: SUCCEEDED -->
 <!-- gh-aw-test-writer: SKIPPED -->
-**Test Coverage Agent — no test changes needed**
-
-<one line per changed file, with the router's skip reason>
 ```
 
 ## Constraints
 
-- The HTML comment marker (`<!-- gh-aw-test-writer: ... -->`) must be present and exactly match one of the three values — it's the only machine-parseable signal distinguishing these outcomes in the PR comment log. Don't paraphrase it.
-- Never mix outcomes in one comment (e.g. some files succeeded, one failed) without using the FAILED template for the whole comment — partial success still needs explicit, visible accounting of what didn't work, not a happy-sounding summary that omits it.
-- This skill does not retry anything. If validation rejected a test once, that file goes in the FAILED table as-is — gh-aw has no supported mechanism for a bounded in-job retry loop (confirmed: one engine invocation per agent job), so the honest behavior is a single attempt, clearly reported, not a silent swallow.
+- The HTML comment marker must be present, exactly one of the three values above, and must reflect the worst group outcome — never paraphrase it, and never report SUCCEEDED at the top level while a group section shows ❌.
+- Within a group, never mix outcomes in a way that hides a failure — a group with one pass and one fail is marked ❌ for the whole group, with both rows shown plainly.
+- This skill does not retry anything. If validation rejected a test once, that file's row shows `fail` as-is — gh-aw has no supported mechanism for a bounded in-job retry loop (confirmed: one engine invocation per agent job), so the honest behavior is a single attempt, clearly reported, not a silent swallow.
+- A wrong or forced grouping is worse than no grouping — if `test-strategy-router` couldn't bind files together, report them as independent rather than inventing a feature name to tidy up the output.

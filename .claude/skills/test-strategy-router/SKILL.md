@@ -1,11 +1,26 @@
 ---
 name: test-strategy-router
-description: Classifies each file changed in a pull request into a test category and decides whether a test is warranted at all, before any test-generation skill runs. Use this first, for every PR-triggered test-writing run, before loading any category generator skill.
+description: Groups a pull request's changed files into logical change-groups (fullstack feature, backend-only, frontend-only) and classifies each file into a test category, deciding whether a test is warranted at all, before any test-generation skill runs. Use this first, for every PR-triggered test-writing run, before loading any category generator skill.
 ---
 
 # Test Strategy Router
 
-For every file changed in the current PR's diff, decide two things: (1) which category it belongs to, (2) whether writing or updating a test is warranted at all.
+Two passes over the PR's changed files, in order: (1) group them into logical change-groups, (2) classify each file within its group into a test category and decide whether a test is warranted.
+
+## Pass 1: group changes into logical units
+
+Don't report a flat list of unrelated-looking files when they're actually one feature. Read the diff as a whole first and look for real coupling signals before grouping — a shared identifier (a new field, route path, or exported name that appears on both sides), a backend change whose only consumer in this PR is a specific frontend file, or a commit/PR description that names one feature. Grouping on vibes alone (two files just happen to be in the same PR) is wrong — require an actual traceable link.
+
+- **Fullstack feature group** — a backend change and a frontend change that are genuinely coupled this way (e.g. a new endpoint/field the frontend's new hook or component consumes in the same diff). Name the group after the feature, not the files (e.g. "Clear completed todos", not "router.ts + useX.ts").
+- **Backend-only group** — backend files that change together for one reason, with no frontend counterpart in this diff.
+- **Frontend-only group** — same, for frontend-only changes.
+- **Independent / ungrouped** — anything that doesn't bind to anything else. Don't force a file into a group for the sake of tidiness — list it on its own, bucketed as backend or frontend. A wrong grouping is worse than no grouping, because it misrepresents what actually changed.
+
+Tag every group (fullstack feature groups especially) with a change-type label describing what kind of change it is, for the reporting skill to show: `UI change`, `API integration change`, `hook change`, `backend logic change`, `manual test update`, `infra change`, or a combination when a group spans more than one (e.g. a fullstack group is typically `API integration change + hook change + UI change`).
+
+## Pass 2: classify each file within its group
+
+For every file, decide two things: (1) which category it belongs to, (2) whether writing or updating a test is warranted at all.
 
 ## Categories
 
@@ -30,6 +45,8 @@ If every changed file is skipped, the whole run is a `noop` — call the `noop` 
 ## Process
 
 1. List the PR's changed files (`git diff --name-only` against the base ref).
-2. Classify each one using the categories above.
-3. For each non-skipped file, note which generator skill will handle it.
-4. Hand off to the matching generator skill(s), one file at a time. Do not batch unrelated files into one test file.
+2. Group them per Pass 1, with a name and change-type tag for each group (or "independent", bucketed backend/frontend).
+3. Within each group, classify each file using the categories above (Pass 2).
+4. For each non-skipped file, note which generator skill will handle it.
+5. Hand off to the matching generator skill(s), one file at a time. Do not batch unrelated files into one test file — grouping is for reporting, not for merging multiple files' tests into one.
+6. Pass the full group structure (name, change-type tag, member files, per-file category/skip decision) to `test-verification-and-reporting` once results are in — it renders the report by group, not as one flat table.
