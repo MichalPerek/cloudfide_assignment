@@ -50,7 +50,7 @@ For "independent / ungrouped" files, use two trailing sections titled "Other bac
 
 ## A second machine-readable marker for category validation
 
-Immediately below the `gh-aw-test-writer` marker, emit one more HTML comment containing a JSON array of every category name actually used across all groups (the exact `name` values from `.github/aw/test-categories.json`, deduplicated, excluding `not-code`):
+Immediately below the `gh-aw-test-writer` marker, emit one more HTML comment containing a JSON array of every category name actually used across all groups (the exact `name` values from `.github/aw/test-categories.json`, deduplicated, excluding `trivial`):
 
 ```
 <!-- gh-aw-test-categories: ["api-contract","ui-component"] -->

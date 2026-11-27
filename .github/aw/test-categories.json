@@ -1,6 +1,6 @@
 {
   "$schema_note": "Canonical, machine-checkable list of test categories for the pr-test-writer gh-aw pipeline. This file is the single source of truth — .claude/skills/test-strategy-router/SKILL.md must treat its prose category list as a human-readable mirror of this file, not an independent definition. Any category name the agent uses in its PR comment (and in the gh-aw-test-categories HTML marker) must appear in `categories[].name` below, or the downstream validator treats it as invented/drifted.",
-  "non_category_names": ["not-code"],
+  "non_category_names": ["trivial"],
   "categories": [
     {
       "name": "api-contract",

@@ -61,10 +61,23 @@ flowchart LR
     C --> D[Hand off to matching skill, or skip]
 ```
 
-- Categories: `api-contract`, `repository-data-layer`, `pure-function`, `react-hook`, `ui-component`, `infra-bootstrap`, `not-code` (skip). Each maps to one generator skill, in the table below.
+- Categories, with a simple example of a change that would fall into each:
+
+| Category | Example change | Test? |
+|---|---|---|
+| `api-contract` | Add a `DELETE /todos/completed` route to `router.ts`. | Yes, `api-contract-tests` |
+| `repository-data-layer` | Add a `clearCompleted()` method to `repository.ts`. | Yes, `repository-tests` |
+| `pure-function` | Add a `sortLabel(sort)` helper to `utils/todos.ts`. | Yes, `pure-function-tests` |
+| `react-hook` | New `useClearCompletedMutation.ts` hook. | Yes, `react-hook-tests` |
+| `ui-component` | Add a "Clear completed" button to `TodosHeader.tsx`. | Yes, `ui-component-tests` |
+| `infra-bootstrap` | Wire the new route into `factory.ts`. | Yes (smoke test), `infra-smoke-tests` |
+| `trivial` | Add a field to `types.ts`, or rename a local variable with no behavior change. | No, skipped |
+
 - `.github/aw/test-categories.json` is the canonical list of those names, checked in code (not just skill prose) by `.github/aw/scripts/validate-test-categories.mjs`, which runs in its own job after the PR comment is posted and fails the job if the comment used a name that doesn't match the manifest.
 
 ### 5. Writing the tests
+
+One skill per category instead of one generic "write a test" skill, because each area of the codebase has its own real conventions (how Prisma gets mocked, which Testing Library APIs are allowed, how TanStack Query hooks get wrapped). A single skill blurs those into generic, inconsistent tests. Each skill is a small harness for its category: it states what "good" looks like there, grounded in excerpts read from this repo's own existing tests, not generic testing advice.
 
 **Agent**: `.github/workflows/pr-test-writer.md`. YAML frontmatter (trigger, permissions, tools, allowed outputs) plus a plain-English prompt. `gh aw compile` generates `.github/workflows/pr-test-writer.lock.yml`, which is what Actions actually runs. Edit the `.md`, recompile, commit both.
 
