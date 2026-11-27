@@ -102,7 +102,7 @@ One skill per category instead of one generic "write a test" skill, because each
 - A sub-agent gets a fresh context with only the category, diff, and proposed test, no transcript.
 - Output is ACCEPT or REJECT with specific reasons tied to its rubric.
 - No retry loop: gh-aw runs one engine invocation per job, no matrix/strategy loops. One attempt per file: generate, validate, report plainly if rejected.
-- Every accepted test also has to pass `typecheck` (and `format:check` for frontend files) before the real test run counts it. Cheap and already wired in both packages, catches type errors and formatting drift without relying on the validator's or the agent's own judgment.
+- For a frontend file, `npx prettier --write` runs on the generated test file first. Mechanical whitespace/quote normalization, not a behavior fix, so it's not covered by the "never silently fix" rule. Every accepted test also has to pass `typecheck` (and `format:check` for frontend files) before the real test run counts it. Cheap and already wired in both packages, catches type errors and any remaining formatting drift without relying on the validator's or the agent's own judgment.
 - A changed `*.test.tsx` file also has to pass `.github/aw/scripts/validate-test-conventions.sh`, which greps it for the convention violations `ui-component-tests/SKILL.md` bans: `fireEvent` instead of `userEvent`, test-id queries instead of role/text queries, snapshot testing. A deterministic check, not something left to the validator's judgment.
 - Only after typecheck/format:check and the convention check pass does the real test suite run (`npm test`). That real run is the only thing allowed to say pass or fail on behavior.
 
