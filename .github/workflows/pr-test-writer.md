@@ -26,6 +26,7 @@ tools:
     - "npm run test:coverage:*"
     - "npm run typecheck:*"
     - "npm run format:check:*"
+    - "npx prettier --write:*"
     - "git diff:*"
     - "git log:*"
     - "ls"
@@ -129,16 +130,22 @@ tests for the changed code — backend and frontend both in scope.
    attempt per file by design (gh-aw has no supported in-job retry
    mechanism, so a second silent attempt would be unenforceable and
    dishonest to claim).
-5. For every test the validator accepted, run `npm run typecheck` for the
-   affected package, and `npm run format:check` as well if it's a
-   frontend file. Both must pass before the file counts as accepted —
-   this catches type errors and formatting drift deterministically,
-   without relying on the validator's or your own judgment. Then run the
-   real test suite for the affected package (`npm test` in `backend/` or
-   `frontend/` as applicable) — this is the only thing allowed to say
-   pass or fail on behavior, not your or the validator's opinion. A file
-   that fails typecheck or format:check is recorded as failed the same
-   way a failed test run is, never silently fixed and retried.
+5. For every test the validator accepted, if it's a frontend file run
+   `npx prettier --write <the generated test file>` on exactly that file
+   before anything else — this is mechanical whitespace/quote
+   normalization with the repo's own configured formatter, not a
+   behavior fix, so it's not covered by the "never silently fix" rule
+   below. Then run `npm run typecheck` for the affected package, and
+   `npm run format:check` as well if it's a frontend file. Both must pass
+   before the file counts as accepted — this catches type errors and any
+   remaining formatting drift deterministically, without relying on the
+   validator's or your own judgment. Then run the real test suite for the
+   affected package (`npm test` in `backend/` or `frontend/` as
+   applicable) — this is the only thing allowed to say pass or fail on
+   behavior, not your or the validator's opinion. A file that still fails
+   typecheck or format:check after the formatting pass is recorded as
+   failed the same way a failed test run is, never silently fixed beyond
+   that one mechanical formatting step and retried.
 6. Only for a same-repository-branch pull request (never for a fork),
    push the accepted, passing test files to the PR branch via the
    `push-to-pull-request-branch` safe output — restricted to
