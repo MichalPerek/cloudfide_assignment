@@ -63,6 +63,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      issues: read
       pull-requests: read
     steps:
       - name: Checkout
@@ -90,8 +91,6 @@ jobs:
         uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
-      - name: Fetch base branch for diffing
-        run: git fetch origin "${{ github.event.pull_request.base.ref }}"
       - name: Validate changed component test files follow convention
         env:
           GITHUB_BASE_REF: ${{ github.event.pull_request.base.ref }}
