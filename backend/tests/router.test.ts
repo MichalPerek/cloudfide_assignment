@@ -32,3 +32,11 @@ it.each([{ title: '  ' }, { title: 'x'.repeat(121) }, { title: 'Task', priority:
     expect(repository.create).not.toHaveBeenCalled();
   },
 );
+it('returns priority counts from the repository', async () => {
+  const { app, repository } = setup();
+  repository.countByPriority.mockResolvedValue({ low: 1, medium: 2, high: 3 });
+  const response = await request(app).get('/api/todos/stats');
+  expect(response.status).toBe(200);
+  expect(response.body).toEqual({ low: 1, medium: 2, high: 3 });
+  expect(repository.countByPriority).toHaveBeenCalledOnce();
+});

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { selectTodos } from './todos'
+import { selectTodos, sortLabel } from './todos'
 import type { Todo } from '../types'
 
 const base: Todo = {
@@ -29,5 +29,15 @@ describe('selectTodos', () => {
     const todos = [base, high]
     expect(selectTodos(todos, 'all', '', 'priority')).toEqual([high, base])
     expect(todos).toEqual([base, high])
+  })
+})
+
+describe('sortLabel', () => {
+  it.each([
+    ['newest', 'Newest'],
+    ['priority', 'Priority'],
+    ['due', 'Due date'],
+  ] as const)('labels %s as %s', (sort, label) => {
+    expect(sortLabel(sort)).toBe(label)
   })
 })

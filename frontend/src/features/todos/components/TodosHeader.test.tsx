@@ -5,6 +5,24 @@ import { TodosHeader } from './TodosHeader'
 
 vi.mock('../../../design-system', () => import('../../../design-system/mocks'))
 
+it('hides the high priority count when it is absent or zero', () => {
+  const { rerender } = render(
+    <TodosHeader disabled={false} onCreate={vi.fn()} />,
+  )
+  expect(screen.queryByText(/high priority/)).not.toBeInTheDocument()
+  rerender(
+    <TodosHeader disabled={false} highPriorityCount={0} onCreate={vi.fn()} />,
+  )
+  expect(screen.queryByText(/high priority/)).not.toBeInTheDocument()
+})
+
+it('shows the high priority count when there is at least one', () => {
+  render(
+    <TodosHeader disabled={false} highPriorityCount={3} onCreate={vi.fn()} />,
+  )
+  expect(screen.getByText('3 high priority')).toBeVisible()
+})
+
 it('invokes creation when enabled and blocks it when disabled', async () => {
   const user = userEvent.setup()
   const onCreate = vi.fn()

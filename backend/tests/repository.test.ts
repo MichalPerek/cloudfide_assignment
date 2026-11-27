@@ -81,3 +81,19 @@ it('propagates database errors', async () => {
   vi.spyOn(database.todo, 'findMany').mockRejectedValue(new Error('Database unavailable'));
   await expect(repository.list()).rejects.toThrow('Database unavailable');
 });
+
+it('counts tasks by priority, defaulting absent priorities to zero', async () => {
+  const { database, repository } = setup();
+  const groupBy = vi.spyOn(database.todo, 'groupBy').mockResolvedValue([
+    { priority: 'high', _count: { _all: 2 } },
+    { priority: 'low', _count: { _all: 1 } },
+  ]);
+  expect(await repository.countByPriority()).toEqual({ low: 1, medium: 0, high: 2 });
+  expect(groupBy).toHaveBeenCalledWith({ by: ['priority'], _count: { _all: true } });
+});
+
+it('returns all zeros when there are no tasks', async () => {
+  const { database, repository } = setup();
+  vi.spyOn(database.todo, 'groupBy').mockResolvedValue([]);
+  expect(await repository.countByPriority()).toEqual({ low: 0, medium: 0, high: 0 });
+});
