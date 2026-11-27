@@ -88,6 +88,7 @@ flowchart TD
 - `test-strategy-router` groups changed files before classifying them. A backend change and the frontend code that consumes it get reported as one feature, not two unrelated rows. Unrelated changes stay separate, bucketed backend/frontend.
 - Each group gets a status badge. The comment ends with exactly one of three fixed, machine-checkable outcomes: `SUCCEEDED`, `FAILED`, `SKIPPED`. A partial pass in a group is reported as `FAILED` for that group.
 - Categories are enforced in code, not just in skill prose: `.github/aw/test-categories.json` is the canonical list, and `.github/aw/scripts/validate-test-categories.mjs` runs in its own job after the comment is posted, reads the category names from a marker in it, and fails with the exact bad name(s) if anything doesn't match the manifest. An invented or misspelled category fails the job instead of silently passing.
+- Every accepted test also has to pass `typecheck` (and `format:check` for frontend files) before the real test run counts it. Cheap and already wired in both packages, catches type errors and formatting drift without relying on the validator's or the agent's own judgment.
 
 ## Safety
 
@@ -140,4 +141,4 @@ Separately: fed the validator a deliberately bad test by hand (tautological asse
 
 - No retry loop: gh-aw limitation, single engine invocation per job. Would need a real multi-job retry across separate workflow invocations.
 - No flakiness check: a test that passes once isn't necessarily reliable. Should run new tests a few times with randomized order before trusting them enough to push.
-- Category is enforced; test *style* within a category isn't. Nothing lints generated tests against each skill's stated conventions beyond trusting the agent to follow them.
+- Category and type-correctness are enforced; repo-specific test conventions beyond that (e.g. userEvent over fireEvent) still rely on the validator's judgment, not a lint rule.
