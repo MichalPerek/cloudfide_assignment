@@ -18,7 +18,13 @@ permissions:
 network: defaults
 
 tools:
-  bash: ["npm", "git", "ls", "cat"]
+  bash:
+    - "npm test:*"
+    - "npm run test:coverage:*"
+    - "git diff:*"
+    - "git log:*"
+    - "ls"
+    - "cat"
 
 pre-agent-steps:
   - name: Setup Node
