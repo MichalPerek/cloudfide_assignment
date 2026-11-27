@@ -16,26 +16,57 @@ Chose [GitHub Agentic Workflows](https://github.com/github/gh-aw) over a hand-wr
 
 ## How it's put together
 
+High level, in order:
+
+1. A PR opens or gets a new commit.
+2. The PR gets scanned for malicious content before anything else runs.
+3. Changed files get checked against the base branch.
+4. Each changed file gets classified and grouped.
+5. Tests get written for whatever needs one.
+6. Each test gets validated, typechecked, and run for real.
+7. A report gets written and posted on the PR.
+8. Passing tests get pushed to the branch, if it's safe to.
+
 ```mermaid
 flowchart TD
-    A[PR opened or updated] --> B[Pre-agent steps]
-    B --> B1[Kill-switch scan]
-    B --> B2[Install deps]
-    B1 --> C[Agent job]
-    B2 --> C
-    C --> C1[Router groups + classifies files]
-    C1 --> C2[Generator skills write tests]
-    C2 --> C3[Validator sub-agent accepts or rejects]
-    C3 --> C4[Real test run]
-    C4 --> D[Safe-outputs job]
-    D --> D1[Post comment]
-    D --> D2[Push test files]
-    D --> E[Validate-categories job]
+    A[PR opens or updates] --> B[Scan for malicious content]
+    B --> C[Check changed files]
+    C --> D[Classify and group files]
+    D --> E[Write tests]
+    E --> F[Validate, typecheck, run tests]
+    F --> G[Write report]
+    G --> H[Notify user: comment + push]
 ```
 
-- **Agent**: `.github/workflows/pr-test-writer.md`. YAML frontmatter (trigger, permissions, tools, allowed outputs) plus a plain-English prompt.
-- `gh aw compile` generates `.github/workflows/pr-test-writer.lock.yml`, which is what Actions actually runs.
-- Edit the `.md`, recompile, commit both.
+### 1-2. Trigger and the kill-switch scan
+
+- Trigger is `pull_request`, `opened`/`synchronize`, scoped to `backend/**` and `frontend/**` only.
+- Before the agent or any LLM runs at all, `.github/aw/scripts/detect-suspicious-pr-content.sh` runs as the first `pre-agent-steps` entry.
+- It reads the PR title and body from env vars (never interpolated straight into `run:`, that's a shell-injection vector) and diffs the PR branch against the base ref.
+- It checks for four things: prompt-injection phrasing ("ignore previous instructions", "reveal your system prompt", etc.), secret-exfiltration patterns, suspicious shell-exec patterns, and invisible/zero-width Unicode used to smuggle hidden text.
+- Secret-exfil and shell-exec patterns are only checked in the title/body, not the diff, because scanning the diff for them false-positives on completely normal code (`process.env`, `curl`, `eval(` all show up in real source files). Prompt-injection and invisible-unicode patterns are checked across title, body, and diff.
+- Any match aborts the job right there, before the LLM has even started, and prints what matched and where to the run log.
+- This is defense-in-depth, not the main defense. See Safety below for what actually contains a successful injection.
+
+### 3-4. Checking and classifying changed files
+
+- `test-strategy-router` runs first inside the agent job and does two passes over `git diff --name-only` against the base ref.
+- Pass 1 groups files: a backend change and the frontend code that consumes it in the same PR get reported as one feature, not two unrelated rows. Files that don't bind to anything else stay independent, bucketed backend or frontend.
+- Pass 2 classifies each file into a category and decides if a test is even warranted (a types-only file or a pure rename gets skipped, not forced through a generator).
+
+```mermaid
+flowchart LR
+    A[Changed files] --> B[Group: fullstack / backend-only / frontend-only / independent]
+    B --> C[Classify each file into a category]
+    C --> D[Hand off to matching skill, or skip]
+```
+
+- Categories: `api-contract`, `repository-data-layer`, `pure-function`, `react-hook`, `ui-component`, `infra-bootstrap`, `not-code` (skip). Each maps to one generator skill, in the table below.
+- `.github/aw/test-categories.json` is the canonical list of those names, checked in code (not just skill prose) by `.github/aw/scripts/validate-test-categories.mjs`, which runs in its own job after the PR comment is posted and fails the job if the comment used a name that doesn't match the manifest.
+
+### 5. Writing the tests
+
+**Agent**: `.github/workflows/pr-test-writer.md`. YAML frontmatter (trigger, permissions, tools, allowed outputs) plus a plain-English prompt. `gh aw compile` generates `.github/workflows/pr-test-writer.lock.yml`, which is what Actions actually runs. Edit the `.md`, recompile, commit both.
 
 **Skills**: `.claude/skills/*/SKILL.md`.
 
@@ -50,45 +81,22 @@ flowchart TD
 | `infra-smoke-tests` | Bootstrap/wiring code: skip, smoke test, or (for `factory.ts`) a full request-level test. |
 | `test-verification-and-reporting` | Writes the final PR comment. |
 
+### 6. Validating and running the tests
+
 **Validator**: `.claude/agents/independent-test-validator.md`, a gh-aw sub-agent, not a skill.
 
 - A skill loads into the generator's own conversation.
 - A sub-agent gets a fresh context with only the category, diff, and proposed test, no transcript.
 - Output is ACCEPT or REJECT with specific reasons tied to its rubric.
 - No retry loop: gh-aw runs one engine invocation per job, no matrix/strategy loops. One attempt per file: generate, validate, report plainly if rejected.
-
-## Watching changes and reporting
-
-```mermaid
-flowchart TD
-    A[Changed files] --> B[Pass 1: group]
-    B --> B1[Fullstack feature]
-    B --> B2[Backend-only]
-    B --> B3[Frontend-only]
-    B --> B4[Independent]
-    B1 --> C[Pass 2: classify each file]
-    B2 --> C
-    B3 --> C
-    B4 --> C
-    C --> D1[api-contract]
-    C --> D2[repository-data-layer]
-    C --> D3[pure-function]
-    C --> D4[react-hook]
-    C --> D5[ui-component]
-    C --> D6[infra-bootstrap]
-    C --> D7[not-code: skip]
-    D1 --> E[Matching generator skill]
-    D2 --> E
-    D3 --> E
-    D4 --> E
-    D5 --> E
-    D6 --> E
-```
-
-- `test-strategy-router` groups changed files before classifying them. A backend change and the frontend code that consumes it get reported as one feature, not two unrelated rows. Unrelated changes stay separate, bucketed backend/frontend.
-- Each group gets a status badge. The comment ends with exactly one of three fixed, machine-checkable outcomes: `SUCCEEDED`, `FAILED`, `SKIPPED`. A partial pass in a group is reported as `FAILED` for that group.
-- Categories are enforced in code, not just in skill prose: `.github/aw/test-categories.json` is the canonical list, and `.github/aw/scripts/validate-test-categories.mjs` runs in its own job after the comment is posted, reads the category names from a marker in it, and fails with the exact bad name(s) if anything doesn't match the manifest. An invented or misspelled category fails the job instead of silently passing.
 - Every accepted test also has to pass `typecheck` (and `format:check` for frontend files) before the real test run counts it. Cheap and already wired in both packages, catches type errors and formatting drift without relying on the validator's or the agent's own judgment.
+- Only after typecheck/format:check pass does the real test suite run (`npm test`). That real run is the only thing allowed to say pass or fail on behavior.
+
+### 7-8. Reporting and notifying
+
+- Each group gets a status badge. The comment ends with exactly one of three fixed, machine-checkable outcomes: `SUCCEEDED`, `FAILED`, `SKIPPED`. A partial pass in a group is reported as `FAILED` for that group.
+- Accepted, passing tests get pushed to the PR branch via the `push-to-pull-request-branch` safe output, only for same-repo PRs, restricted to `*.test.ts`/`*.test.tsx` files.
+- For a fork PR, nothing gets pushed. The proposed test content goes into the comment as a suggested patch instead.
 
 ## Safety
 
@@ -105,7 +113,7 @@ Assuming this stays a public/open repo, PR title/body/diff is attacker-controlle
 
 ### Workflow safety
 
-- `.github/aw/scripts/detect-suspicious-pr-content.sh` runs as a `pre-agent-steps` entry, scans PR title/body/diff for known injection phrasing and shell-exec patterns, and aborts before the LLM runs if it matches. Added on top, not the main defense.
+- The kill-switch scan (see step 2 above) is added on top, not the main defense.
 - Network access goes through gh-aw's firewall container: LLM API and npm registry only.
 - `npm ci --ignore-scripts` on every install. Prisma client generated with its own explicit command, not postinstall.
 
