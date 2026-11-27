@@ -114,20 +114,18 @@ One skill per category instead of one generic "write a test" skill, because each
 
 What the comment itself looks like, one section per group:
 
-```
-### ✅ Clear completed todos (API integration change + hook change + UI change)
-
-Backend exposes a delete-completed endpoint, frontend wires it to a new button.
-
-| File | Role | Test file | Result |
-|---|---|---|---|
-| repository.ts | repository-data-layer | repository.test.ts | pass |
-| router.ts | api-contract | router.test.ts | pass |
-| TodosHeader.tsx | ui-component | TodosHeader.test.tsx | pass |
-| useClearCompletedMutation.ts | react-hook | useClearCompletedMutation.test.ts | pass |
-
-Validator feedback: no issues on first pass.
-```
+> ### ✅ Clear completed todos (API integration change + hook change + UI change)
+>
+> Backend exposes a delete-completed endpoint, frontend wires it to a new button.
+>
+> | File | Role | Test file | Result |
+> |---|---|---|---|
+> | repository.ts | repository-data-layer | repository.test.ts | pass |
+> | router.ts | api-contract | router.test.ts | pass |
+> | TodosHeader.tsx | ui-component | TodosHeader.test.tsx | pass |
+> | useClearCompletedMutation.ts | react-hook | useClearCompletedMutation.test.ts | pass |
+>
+> Validator feedback: no issues on first pass.
 
 - **Heading**: the group's name and its change-type tag(s), not a file list, so a reviewer sees the feature, not plumbing.
 - **✅ / ❌ / ⏭**: pass, at least one fail in the group, or nothing in the group needed a test.
