@@ -27,3 +27,9 @@ it('sends only writable task fields on creation', async () => {
     }),
   })
 })
+
+it('requests deletion of completed tasks and returns the cleared count', async () => {
+  vi.mocked(request).mockResolvedValue({ cleared: 2 })
+  await expect(todosApi.clearCompleted()).resolves.toEqual({ cleared: 2 })
+  expect(request).toHaveBeenCalledWith('/todos/completed', { method: 'DELETE' })
+})
