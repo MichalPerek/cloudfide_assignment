@@ -124,13 +124,14 @@ What the comment itself looks like, one section per group:
 > | router.ts | api-contract | router.test.ts | pass |
 > | TodosHeader.tsx | ui-component | TodosHeader.test.tsx | pass |
 > | useClearCompletedMutation.ts | react-hook | useClearCompletedMutation.test.ts | pass |
+> | todos.ts | — | — | skipped — one-line delegation to `request()`, no category fits it |
 >
 > Validator feedback: no issues on first pass.
 
 - **Heading**: the group's name and its change-type tag(s), not a file list, so a reviewer sees the feature, not plumbing.
 - **✅ / ❌ / ⏭**: pass, at least one fail in the group, or nothing in the group needed a test.
 - **Role**: the test category that routed the file to its generator skill (same names as the example table above).
-- **Result**: `pass` only after the file cleared the validator, typecheck/format:check, the convention check, and the real test run, in that order. Anything short of all four is `fail`, never a partial credit.
+- **Result**: `pass` only after the file cleared the validator, typecheck/format:check, the convention check, and the real test run, in that order. Anything short of all four is `fail`, never a partial credit. A skipped file is still a row in this same table, with the reason inline, not a separate list underneath.
 - **Validator feedback**: one line per file, so a rejection shows up as "rejected: &lt;reason&gt;" right where the row is, not buried somewhere else.
 - Below all the groups, two more HTML comments carry the machine-checkable state: `<!-- gh-aw-test-writer: SUCCEEDED|FAILED|SKIPPED -->` (the overall outcome) and `<!-- gh-aw-test-categories: [...] -->` (every category name used, checked against the manifest by `validate-test-categories.mjs`). Neither is meant to be read by a human, they're there so downstream jobs don't have to parse the markdown tables.
 
