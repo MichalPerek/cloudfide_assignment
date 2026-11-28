@@ -31,5 +31,47 @@ it('shows an active task and forwards edit requests', async () => {
   )
   expect(onEdit).toHaveBeenCalledTimes(1)
   expect(onToggle).not.toHaveBeenCalled()
+  expect(onDuplicate).not.toHaveBeenCalled()
   expect(onDelete).not.toHaveBeenCalled()
+})
+
+it('forwards duplicate requests', async () => {
+  const user = userEvent.setup()
+  const onEdit = vi.fn()
+  const onToggle = vi.fn()
+  const onDuplicate = vi.fn()
+  const onDelete = vi.fn()
+  render(
+    <TodoItem
+      todo={todoFixture}
+      busy={false}
+      onEdit={onEdit}
+      onToggle={onToggle}
+      onDuplicate={onDuplicate}
+      onDelete={onDelete}
+    />,
+  )
+  await user.click(
+    screen.getByRole('button', { name: `Duplicate: ${todoFixture.title}` }),
+  )
+  expect(onDuplicate).toHaveBeenCalledTimes(1)
+  expect(onEdit).not.toHaveBeenCalled()
+  expect(onToggle).not.toHaveBeenCalled()
+  expect(onDelete).not.toHaveBeenCalled()
+})
+
+it('disables the duplicate button while busy', () => {
+  render(
+    <TodoItem
+      todo={todoFixture}
+      busy
+      onEdit={vi.fn()}
+      onToggle={vi.fn()}
+      onDuplicate={vi.fn()}
+      onDelete={vi.fn()}
+    />,
+  )
+  expect(
+    screen.getByRole('button', { name: `Duplicate: ${todoFixture.title}` }),
+  ).toBeDisabled()
 })

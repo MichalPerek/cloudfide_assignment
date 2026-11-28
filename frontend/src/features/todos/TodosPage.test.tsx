@@ -24,7 +24,11 @@ vi.mock('./components/TodosHeader', () => ({
   TodosHeader: () => <h1>Tasks</h1>,
 }))
 vi.mock('./components/TodoFilters', () => ({ TodoFilters: () => null }))
-vi.mock('./components/TodoList', () => ({ TodoList: () => <p>Task list</p> }))
+vi.mock('./components/TodoList', () => ({
+  TodoList: (props: { onDuplicate: (todo: { id: number }) => void }) => (
+    <button onClick={() => props.onDuplicate({ id: 7 })}>Duplicate task</button>
+  ),
+}))
 vi.mock('./components/TodoEditor', () => ({ TodoEditor: () => null }))
 vi.mock('./components/DeleteTodoDialog', () => ({
   DeleteTodoDialog: () => null,
@@ -72,4 +76,41 @@ it('displays a query failure and resets mutation errors before retrying', async 
   expect(reset.mock.invocationCallOrder[0]).toBeLessThan(
     refetch.mock.invocationCallOrder[0],
   )
+})
+
+it('duplicates a task and shows a success notice', async () => {
+  const user = userEvent.setup()
+  const mutateAsync = vi.fn().mockResolvedValue({ id: 8 })
+  const notify = vi.fn()
+  vi.mocked(useTodosQuery).mockReturnValue({
+    data: [],
+    isPending: false,
+    isFetching: false,
+    isError: false,
+    error: null,
+    refetch: vi.fn(),
+  } as unknown as ReturnType<typeof useTodosQuery>)
+  vi.mocked(useUpdateTodoMutation).mockReturnValue({
+    error: null,
+    reset: vi.fn(),
+    mutateAsync: vi.fn(),
+  } as unknown as ReturnType<typeof useUpdateTodoMutation>)
+  vi.mocked(useDuplicateTodoMutation).mockReturnValue({
+    mutateAsync,
+  } as unknown as ReturnType<typeof useDuplicateTodoMutation>)
+  vi.mocked(useTodosBusy).mockReturnValue(false)
+  vi.mocked(useNotice).mockReturnValue({ message: '', notify })
+  vi.mocked(useTodoFilters).mockReturnValue({
+    filter: 'all',
+    search: '',
+    sort: 'newest',
+    visible: [],
+    setFilter: vi.fn(),
+    setSearch: vi.fn(),
+    setSort: vi.fn(),
+  })
+  render(<TodosPage />)
+  await user.click(screen.getByRole('button', { name: 'Duplicate task' }))
+  await waitFor(() => expect(mutateAsync).toHaveBeenCalledWith(7))
+  expect(notify).toHaveBeenCalledWith('Task duplicated.')
 })
