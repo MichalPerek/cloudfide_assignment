@@ -75,3 +75,7 @@ export function completionRate(todos: Todo[]): number {
   const completed = todos.filter((todo) => todo.completed).length
   return Math.round((completed / todos.length) * 100)
 }
+
+export function countOverdue(todos: Todo[]): number {
+  return todos.filter(isOverdue).length
+}
