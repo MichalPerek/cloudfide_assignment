@@ -7,6 +7,8 @@ description: Writes or updates Vitest + React Testing Library tests for custom R
 
 Follow `frontend/src/hooks/useNotice.test.ts` for plain hooks. For hooks built on `@tanstack/react-query` (`useTodosQuery`, `useCreateTodoMutation`, `useDeleteTodoMutation`, `useUpdateTodoMutation`, `useTodosBusy`, `useTodoFilters` — currently untested), the convention needs one addition the existing test suite doesn't show yet, since none of these hooks have tests: wrap `renderHook` with a `QueryClientProvider` using a fresh `new QueryClient()` per test (disable retries so failures don't hang the test), and mock the underlying API module the same way `frontend/src/features/todos/api/todos.test.ts` mocks `lib/http`'s `request` — never mock `@tanstack/react-query` itself.
 
+**File extension**: the wrapper you pass to `renderHook`'s `wrapper` option renders `<QueryClientProvider>`, which is JSX — name the test file `*.test.tsx`, never `*.test.ts`, even though the hook itself lives in a `.ts` file. If the wrapper's `children` prop needs a type annotation, import it explicitly (`import type { ReactNode } from 'react'`) rather than writing the bare `React.ReactNode` namespace reference — this repo's JSX runtime doesn't give you an implicit `React` import, so an unimported `React.ReactNode` fails typecheck with `TS2503: Cannot find name 'React'`.
+
 ## Required pattern
 
 - Use `renderHook` from `@testing-library/react`.
