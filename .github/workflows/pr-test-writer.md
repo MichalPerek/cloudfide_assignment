@@ -33,11 +33,16 @@ tools:
     - "cat"
 
 pre-agent-steps:
+  - name: Fetch base branch for the injection-scan diff check
+    run: git fetch --depth=1 origin "$PR_BASE_REF"
+    env:
+      PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
   - name: Scan PR for prompt-injection / malicious-intent signals
     run: bash .github/aw/scripts/detect-suspicious-pr-content.sh
     env:
       PR_TITLE: ${{ github.event.pull_request.title }}
       PR_BODY: ${{ github.event.pull_request.body }}
+      GITHUB_BASE_REF: ${{ github.event.pull_request.base.ref }}
   - name: Setup Node
     uses: actions/setup-node@v7.1.0
     with:
