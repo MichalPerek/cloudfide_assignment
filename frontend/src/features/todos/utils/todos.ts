@@ -1,6 +1,7 @@
 import type { Filter, Sort, Todo, TodoInput } from '../types'
 
 export const priorityLabels = { low: 'Low', medium: 'Medium', high: 'High' }
+// Lower number sorts first when sort === 'priority'.
 const priorityOrder = { high: 0, medium: 1, low: 2 }
 
 export function validateTodo(input: TodoInput): Record<string, string> {
