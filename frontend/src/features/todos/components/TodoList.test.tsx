@@ -17,6 +17,7 @@ it('shows loading feedback before showing an empty list', () => {
     onCreate: vi.fn(),
     onToggle: vi.fn(),
     onEdit: vi.fn(),
+    onDuplicate: vi.fn(),
     onDelete: vi.fn(),
   }
   const { rerender } = render(<TodoList {...props} loading />)

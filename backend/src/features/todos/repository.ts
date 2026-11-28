@@ -48,4 +48,22 @@ export class TodoRepository implements TodoStore {
     const { count } = await this.database.todo.deleteMany({ where: { id } });
     return count > 0;
   }
+
+  async duplicate(id: number): Promise<Todo | null> {
+    const original = await this.database.todo.findUnique({ where: { id } });
+    if (!original) return null;
+    const now = new Date();
+    const record = await this.database.todo.create({
+      data: {
+        title: `${original.title} (copy)`,
+        description: original.description,
+        priority: original.priority,
+        due_date: original.due_date,
+        completed: false,
+        created_at: now,
+        updated_at: now,
+      },
+    });
+    return fromModel(record);
+  }
 }

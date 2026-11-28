@@ -10,6 +10,7 @@ it('shows an active task and forwards edit requests', async () => {
   const user = userEvent.setup()
   const onEdit = vi.fn()
   const onToggle = vi.fn()
+  const onDuplicate = vi.fn()
   const onDelete = vi.fn()
   render(
     <TodoItem
@@ -17,6 +18,7 @@ it('shows an active task and forwards edit requests', async () => {
       busy={false}
       onEdit={onEdit}
       onToggle={onToggle}
+      onDuplicate={onDuplicate}
       onDelete={onDelete}
     />,
   )
