@@ -31,5 +31,12 @@ it('shows an active task and forwards edit requests', async () => {
   )
   expect(onEdit).toHaveBeenCalledTimes(1)
   expect(onToggle).not.toHaveBeenCalled()
+  expect(onDuplicate).not.toHaveBeenCalled()
+  expect(onDelete).not.toHaveBeenCalled()
+
+  await user.click(
+    screen.getByRole('button', { name: `Duplicate: ${todoFixture.title}` }),
+  )
+  expect(onDuplicate).toHaveBeenCalledTimes(1)
   expect(onDelete).not.toHaveBeenCalled()
 })

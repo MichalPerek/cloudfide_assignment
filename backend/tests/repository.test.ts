@@ -81,3 +81,26 @@ it('propagates database errors', async () => {
   vi.spyOn(database.todo, 'findMany').mockRejectedValue(new Error('Database unavailable'));
   await expect(repository.list()).rejects.toThrow('Database unavailable');
 });
+
+it('duplicates a task with a "(copy)" suffixed title and resets completion', async () => {
+  const { database, repository } = setup();
+  const findUnique = vi.spyOn(database.todo, 'findUnique').mockResolvedValue({ ...record, completed: true });
+  const create = vi.spyOn(database.todo, 'create').mockResolvedValue({ ...record, id: 2, title: 'Plan the sprint (copy)', completed: false });
+  expect(await repository.duplicate(1)).toEqual({ ...todo, id: 2, title: 'Plan the sprint (copy)', completed: false });
+  expect(findUnique).toHaveBeenCalledWith({ where: { id: 1 } });
+  const data = create.mock.calls[0][0].data;
+  expect(data).toMatchObject({
+    title: 'Plan the sprint (copy)', description: record.description, priority: record.priority,
+    due_date: record.due_date, completed: false,
+  });
+  expect(data.created_at).toBeInstanceOf(Date);
+  expect(data.updated_at).toEqual(data.created_at);
+});
+
+it('returns null when duplicating a missing task', async () => {
+  const { database, repository } = setup();
+  vi.spyOn(database.todo, 'findUnique').mockResolvedValue(null);
+  const create = vi.spyOn(database.todo, 'create');
+  expect(await repository.duplicate(99)).toBeNull();
+  expect(create).not.toHaveBeenCalled();
+});
