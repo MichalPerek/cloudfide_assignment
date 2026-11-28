@@ -69,3 +69,9 @@ export function formatDate(date: string): string {
     year: 'numeric',
   }).format(new Date(`${date}T12:00:00`))
 }
+
+export function completionRate(todos: Todo[]): number {
+  if (todos.length === 0) return 0
+  const completed = todos.filter((todo) => todo.completed).length
+  return Math.round((completed / todos.length) * 100)
+}

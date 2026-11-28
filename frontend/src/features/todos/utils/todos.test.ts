@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { selectTodos } from './todos'
+import { completionRate, selectTodos } from './todos'
 import type { Todo } from '../types'
 
 const base: Todo = {
@@ -29,5 +29,44 @@ describe('selectTodos', () => {
     const todos = [base, high]
     expect(selectTodos(todos, 'all', '', 'priority')).toEqual([high, base])
     expect(todos).toEqual([base, high])
+  })
+})
+
+describe('completionRate', () => {
+  it.each([
+    { label: 'no todos', todos: [], expected: 0 },
+    {
+      label: 'none completed',
+      todos: [base, { ...base, id: 2 }],
+      expected: 0,
+    },
+    {
+      label: 'all completed',
+      todos: [
+        { ...base, completed: true },
+        { ...base, id: 2, completed: true },
+      ],
+      expected: 100,
+    },
+    {
+      label: 'rounds down when the fraction is below the midpoint',
+      todos: [
+        { ...base, completed: true },
+        { ...base, id: 2 },
+        { ...base, id: 3 },
+      ],
+      expected: 33,
+    },
+    {
+      label: 'rounds up when the fraction is above the midpoint',
+      todos: [
+        { ...base, completed: true },
+        { ...base, id: 2, completed: true },
+        { ...base, id: 3 },
+      ],
+      expected: 67,
+    },
+  ])('returns $expected for $label', ({ todos, expected }) => {
+    expect(completionRate(todos)).toBe(expected)
   })
 })
