@@ -1,5 +1,7 @@
 # Taskly App Node
 
+This fork adds an agentic PR test-writer workflow (`.github/workflows/pr-test-writer.md`). See [`SOLUTION.md`](./SOLUTION.md) for how it's put together and example runs.
+
 ## Setup
 
 ```sh

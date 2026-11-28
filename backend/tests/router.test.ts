@@ -5,7 +5,7 @@ import { createTodosRouter } from '../src/features/todos/router.ts';
 import { todo } from './fixture.ts';
 
 function setup() {
-  const repository = { list: vi.fn().mockResolvedValue([todo]), create: vi.fn().mockResolvedValue(todo), get: vi.fn(), update: vi.fn(), delete: vi.fn() };
+  const repository = { list: vi.fn().mockResolvedValue([todo]), create: vi.fn().mockResolvedValue(todo), get: vi.fn(), update: vi.fn(), delete: vi.fn(), duplicate: vi.fn() };
   const app = express();
   app.use(express.json());
   app.use('/api/todos', createTodosRouter(repository));
@@ -32,3 +32,18 @@ it.each([{ title: '  ' }, { title: 'x'.repeat(121) }, { title: 'Task', priority:
     expect(repository.create).not.toHaveBeenCalled();
   },
 );
+it('duplicates a task from the repository', async () => {
+  const { app, repository } = setup();
+  repository.duplicate.mockResolvedValue({ ...todo, id: 2, title: `${todo.title} (copy)` });
+  const response = await request(app).post('/api/todos/1/duplicate');
+  expect(response.status).toBe(201);
+  expect(response.body).toEqual({ ...todo, id: 2, title: `${todo.title} (copy)` });
+  expect(repository.duplicate).toHaveBeenCalledWith(1);
+});
+it('returns 404 when duplicating a missing task', async () => {
+  const { app, repository } = setup();
+  repository.duplicate.mockResolvedValue(null);
+  const response = await request(app).post('/api/todos/99/duplicate');
+  expect(response.status).toBe(404);
+  expect(response.body).toEqual({ detail: 'Task not found.' });
+});
